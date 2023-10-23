@@ -1,4 +1,5 @@
 /* Code */
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 import "./AToken.sol";
@@ -22,7 +23,7 @@ contract DutchAuction {
     uint public totalSupply;
     uint public startingPrice;
     uint public floorPrice;
-    uint public discountRate;
+    uint public decrementRate;
     uint public startAt;
     uint public endAt;
     uint public totalReceived;
@@ -45,7 +46,7 @@ contract DutchAuction {
     }
 
     modifier timedTransition() {
-        if (stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice) {
+        if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice)|| (block.timestamp > endAt)){
             finalizeAuction();
         }
         _;
@@ -53,13 +54,13 @@ contract DutchAuction {
 
     constructor(
         uint _startingPrice,
-        uint _floorPrice,
-        uint _discountRate,
+        uint _decrementRate,
         uint _totalSupply
     ) {
         startingPrice = _startingPrice;
-        floorPrice = _floorPrice;
-        discountRate = _discountRate;
+        decrementRate = _decrementRate;
+        floorPrice = startingPrice - decrementRate*DURATION;
+        require(floorPrice > 0, "Floorprice cannot be 0.");
         totalSupply = _totalSupply;
         stage = Stages.AuctionDeployed;
     }
@@ -73,16 +74,30 @@ contract DutchAuction {
         return stage;
     }
 
+    function getStage() public view returns (string memory) {
+        string memory stageName;
+        if (stage == Stages.AuctionDeployed) {
+            return "AuctionDeployed";
+        } else if (stage == Stages.AuctionStarted) {
+            return "AuctionStarted";
+        } else if (stage == Stages.AuctionEnded) {
+            return "AuctionEnded";
+        }
+        return stageName;
+        // return stage;
+    }
+
     function startAuction() public onlyBy(owner) stageAt(Stages.AuctionDeployed) timedTransition {
         startAt = block.timestamp;
         endAt = startAt + DURATION;
         totalReceived = 0;
+        stage = Stages.AuctionStarted;
     }
 
     function calculateCurrentPrice() public view returns (uint) {
         uint timeElapsed = block.timestamp - startAt;
-        uint discount = timeElapsed * discountRate;
-        return startingPrice - discount;
+        uint decrement = timeElapsed * decrementRate;
+        return startingPrice - decrement;
     }
 
     function bid(address _bidder) external payable stageAt(Stages.AuctionStarted) timedTransition {
@@ -111,7 +126,7 @@ contract DutchAuction {
         emit BidSubmission(_bidder, amount);
     }
 
-    function finalizeAuction() private {
+    function finalizeAuction() public onlyBy(owner) {
         stage = Stages.AuctionEnded;
         uint price = calculateCurrentPrice();
         uint unsoldTokens = totalSupply - totalReceived/price;
@@ -136,5 +151,7 @@ contract DutchAuction {
         // Prevent against reentrancy
         bids[recipient] = 0;
         aToken.transfer(recipient, tokens);
+        
+        //emit event for successful claim
     }
 }
