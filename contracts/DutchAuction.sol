@@ -46,7 +46,7 @@ contract DutchAuction {
     }
 
     modifier timedTransition() {
-        if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice)|| (block.timestamp > endAt)){
+        if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice) || (stage == Stages.AuctionStarted && block.timestamp > endAt)){
             finalizeAuction();
         }
         _;
