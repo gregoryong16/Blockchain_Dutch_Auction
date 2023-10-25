@@ -1,4 +1,3 @@
-/* Code */
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
@@ -10,6 +9,7 @@ contract DutchAuction {
 
     // Events
     event BidSubmission(address indexed sender, uint256 amount);
+    event TokenClaimed(address indexed claimerAddress, uint256 tokens);
     
     // Enums
     enum Stages {
@@ -153,5 +153,6 @@ contract DutchAuction {
         aToken.transfer(recipient, tokens);
         
         //emit event for successful claim
+        emit TokenClaimed(recipient, tokens);
     }
 }
