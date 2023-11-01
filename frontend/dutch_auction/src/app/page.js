@@ -1,10 +1,23 @@
+'use client'
 import ConnectButton from '@/components/ConnectButton'
 import { MetaMaskContextProvider } from '@/hooks/useMetamask'
+import { dutchAuction } from './ClientContracts'
 export default function Home() {
+
+  const testFunc = () => {
+    dutchAuction.getOwner().then((res) => {
+      console.log(res)
+    })
+  }
+
+
   return (
     <MetaMaskContextProvider>
       <main className="flex min-h-screen flex-col items-center px-24 pt-12">
-        <div className='flex justify-end w-full bg-blue-100'>
+        <div className='flex justify-between w-full'>
+          <button className='bg-red-200 rounded-lg px-3' onClick={testFunc}>
+            TEST BUTTON
+          </button>
           <ConnectButton></ConnectButton>
         </div>
         {/* address and timer section */}

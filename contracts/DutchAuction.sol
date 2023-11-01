@@ -31,7 +31,7 @@ contract DutchAuction {
     
     Stages private stage;
     mapping (address => uint) public bids;
-    address private owner = msg.sender;
+    address public owner = msg.sender;
 
     // Modifiers
     // Checks if contract owner is the one executing the function

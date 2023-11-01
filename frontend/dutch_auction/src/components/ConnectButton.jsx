@@ -20,7 +20,7 @@ export default function ConnectButton() {
           Install MetaMask
         </a>
       )}
-      {window.ethereum.isMetaMask && wallet.accounts.length < 1 && (
+      {wallet.accounts.length < 1 && (
         <button
           className={defaultClassName}
           disabled={isConnecting}
