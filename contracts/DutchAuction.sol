@@ -100,6 +100,10 @@ contract DutchAuction {
         return startingPrice - decrement;
     }
 
+    function getTime() public view returns(uint256){
+        return block.timestamp;
+    }
+
     function bid(address _bidder) external payable stageAt(Stages.AuctionStarted) timedTransition {
         require(block.timestamp < endAt, "Auction has ended!");
         address payable bidder;
