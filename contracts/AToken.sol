@@ -55,7 +55,7 @@ contract AToken is ERC20Interface, SafeMath {
     string public name;
     uint8 public decimals;
     uint public _totalSupply;
-    address public METAMASK_WALLET_ADDRESS = 0x9f4ab668Ba87d67d371021B96769346A4f02C39e;
+    address public METAMASK_WALLET_ADDRESS = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;

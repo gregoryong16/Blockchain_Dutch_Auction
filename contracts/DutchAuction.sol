@@ -5,7 +5,7 @@ import "./AToken.sol";
 
 contract DutchAuction {
     // Constants
-    uint private constant DURATION = 20 minutes;
+    uint private constant DURATION =  2 minutes;
 
     // Events
     event BidSubmission(address indexed sender, uint256 amount);
@@ -28,6 +28,7 @@ contract DutchAuction {
     uint public endAt;
     uint public totalReceived;
     uint public finalPrice;
+    bool public isClaimable = false;
     
     Stages private stage;
     mapping (address => uint) public bids;
@@ -45,12 +46,12 @@ contract DutchAuction {
         _;
     }
 
-    modifier timedTransition() {
-        if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice) || (stage == Stages.AuctionStarted && block.timestamp > endAt)){
-            finalizeAuction();
-        }
-        _;
-    }
+    // modifier timedTransition() {
+    //     if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice) || (stage == Stages.AuctionStarted && block.timestamp > endAt)){
+    //         finalizeAuction();
+    //     }
+    //     _;
+    // }
 
     constructor(
         uint _startingPrice,
@@ -70,9 +71,9 @@ contract DutchAuction {
         owner = _newOwner;
     }
 
-    function updateStage() public timedTransition returns (Stages) {
-        return stage;
-    }
+    // function updateStage() public timedTransition returns (Stages) {
+    //     return stage;
+    // }
 
     function getStage() public view returns (string memory) {
         string memory stageName;
@@ -87,7 +88,8 @@ contract DutchAuction {
         // return stage;
     }
 
-    function startAuction() public onlyBy(owner) stageAt(Stages.AuctionDeployed) timedTransition {
+    function startAuction() public onlyBy(owner) stageAt(Stages.AuctionDeployed) {
+        require(stage == Stages.AuctionDeployed, "Auction have already started");
         startAt = block.timestamp;
         endAt = startAt + DURATION;
         totalReceived = 0;
@@ -100,11 +102,7 @@ contract DutchAuction {
         return startingPrice - decrement;
     }
 
-    function getTime() public view returns(uint256){
-        return block.timestamp;
-    }
-
-    function bid(address _bidder) external payable stageAt(Stages.AuctionStarted) timedTransition {
+    function bid(address _bidder) external payable stageAt(Stages.AuctionStarted) {
         require(block.timestamp < endAt, "Auction has ended!");
         address payable bidder;
 
@@ -113,37 +111,46 @@ contract DutchAuction {
         } else {
             bidder = payable(_bidder);
         }
+
         uint amount = msg.value;
-        uint maxAmountPurchasable = totalSupply * calculateCurrentPrice() - totalReceived;
-        if (amount > maxAmountPurchasable) {
+        uint currentPrice = calculateCurrentPrice();
+        uint maxAmountPurchasable = totalSupply * currentPrice - totalReceived;
+
+
+        if (amount >maxAmountPurchasable){
             uint change = amount - maxAmountPurchasable;
             amount = maxAmountPurchasable;
             bidder.transfer(change);
         }
-        bids[msg.sender] += amount;
+
         totalReceived += amount;
+        bids[bidder] += amount;
 
         if (amount == maxAmountPurchasable) {
-            finalizeAuction();
+            stage = Stages.AuctionEnded;
+            finalPrice = currentPrice;
         }
 
         emit BidSubmission(_bidder, amount);
     }
 
     function finalizeAuction() public onlyBy(owner) {
-        stage = Stages.AuctionEnded;
-        uint price = calculateCurrentPrice();
-        uint unsoldTokens = totalSupply - totalReceived/price;
-        if (unsoldTokens == 0) {
-            finalPrice = price;
-        } else {
-            finalPrice = floorPrice;
-            // Burn the rest of the tokens
-            aToken.transfer(address(0), unsoldTokens);
-        }
-    }
+        require(stage == Stages.AuctionEnded || block.timestamp > endAt , " Unable to end auction");
 
-    function claimTokens(address _recipient) external stageAt(Stages.AuctionEnded) timedTransition {
+        if (block.timestamp>endAt){
+            finalPrice = floorPrice;
+            stage = Stages.AuctionEnded;
+        }
+        uint unsoldTokens = totalSupply - totalReceived/finalPrice;
+        isClaimable = true;
+
+        // Burn the rest of the tokens
+        // aToken.transfer(address(0), unsoldTokens);
+        }
+    
+
+    function claimTokens(address _recipient) external stageAt(Stages.AuctionEnded) {
+        require(stage == Stages.AuctionEnded, "Auction have not ended");
         address payable recipient;
         if (_recipient == address(0)) {
             recipient = payable(msg.sender);
@@ -154,9 +161,12 @@ contract DutchAuction {
 
         // Prevent against reentrancy
         bids[recipient] = 0;
-        aToken.transfer(recipient, tokens);
+        // aToken.transfer(recipient, tokens);
         
         //emit event for successful claim
         emit TokenClaimed(recipient, tokens);
+    }
+    function getTime() external view returns(uint256){
+        return block.timestamp;
     }
 }

@@ -29,6 +29,11 @@ class DutchAuction {
         }
     }
 
+    async getFinalPrice() {
+        const result = await this.contract.finalPrice()
+        return formatEther(result)
+    }
+
     async getOwner() {
         const result = await this.contract.owner()
         return result
@@ -36,7 +41,6 @@ class DutchAuction {
 
     async getBids(address) {
         const result = await this.contract.bids(address)
-        console.log(result)
         return formatEther(result)
     }
 
@@ -48,6 +52,14 @@ class DutchAuction {
         const result = await this.contract.totalSupply()
         return Number(result)
     }
+    async getTotalReceived() {
+        const result = await this.contract.totalReceived()
+        return formatEther(result)
+    }
+    async getIsClaimable() {
+        const result = await this.contract.isClaimable()
+        return Boolean(result)
+    }
 
     async bid(amount, address) {
         // amount is in float
@@ -56,12 +68,11 @@ class DutchAuction {
         console.log('bidding with price= ', parseEther(amount.toString()))
         const tx = await contract.bid(address, { value: parseEther(amount.toString()) })
     }
-    async claim() {
+    async claim(address) {
         // need get signer
         const signer = await this.provider.getSigner()
         const contract = new ethers.Contract(this.address, this.abi, signer)
-        console.log('bidding with price= ', parseEther(amount.toString()))
-        const tx = await contract.bid(address, { value: parseEther(amount.toString()) })
+        await contract.claimTokens(address)
     }
     async startAuction() {
         const state = await this.getStage()
@@ -75,20 +86,20 @@ class DutchAuction {
         }
 
     }
-    async updateStage() {
-        const state = await this.getStage()
-        if (state == 'AuctionStarted') {
-            const signer = await this.provider.getSigner()
-            const contract = new ethers.Contract(this.address, this.abi, signer)
-            await contract.updateStage()
-        } else {
-            console.log('current auction state is ', state)
-        }
+    async finalizeAuction() {
+        const signer = await this.provider.getSigner()
+        const contract = new ethers.Contract(this.address, this.abi, signer)
+        await contract.finalizeAuction()
         // need get signer
+    }
+    async getTime() {
+        const result = await this.contract.getTime()
+        const date = new Date(Number(result) * 1000)
+        return date
     }
 }
 
-const AUCTION_ADDRESS = "0x9262996C3411d6AE519448Bd7a1A5482f8816a7C";
+const AUCTION_ADDRESS = "0x4A679253410272dd5232B3Ff7cF5dbB88f295319";
 
 
 export const dutchAuction = new DutchAuction(AUCTION_ADDRESS, dutchAuctionArtifact['abi'])

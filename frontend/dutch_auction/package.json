@@ -19,5 +19,9 @@
     "autoprefixer": "latest",
     "postcss": "latest",
     "tailwindcss": "latest"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8",
+    "utf-8-validate": "^5.0.10"
   }
 }

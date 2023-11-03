@@ -6,28 +6,29 @@ import { useEffect, useState } from 'react'
 import { formatAddress } from '@/utils'
 export default function Home() {
   const { wallet } = useMetaMask()
-  const [txs, setTxs] = useState([])
+  // const [txs, setTxs] = useState([])
   const [owner, setOwner] = useState('')
   const [price, setPrice] = useState('')
+  const [finalPrice, setFinalPrice] = useState('')
+  const [tokenSupply, setTokenSupply] = useState(0)
+  const [totalReceived, setTotalReceived] = useState('')
   const [stage, setStage] = useState('')
   const [endAt, setEndAt] = useState('')
   const [totalBids, setTotalBids] = useState('')
   const [bidAmount, setBidAmount] = useState(0)
-  const [isClaimSuccess, setIsClaimSuccess] = useState(false)
+  const [isClaimable, setIsClaimable] = useState(false)
 
 
   const test1Func = async () => {
-    dutchAuction.getCurrentPrice().then((res) => {
+    dutchAuction.getIsClaimable().then((res) => {
       console.log(res)
     })
   }
-  const test2Func = async () => {
-    const result = await dutchAuction.getStage()
-    console.log(result)
-
-  }
-  const ownerfunc = async () => {
+  const startAuction = async () => {
     await dutchAuction.startAuction()
+  }
+  const finalizeAuction = async () => {
+    await dutchAuction.finalizeAuction()
   }
 
   const buyHandler = async () => {
@@ -38,86 +39,128 @@ export default function Home() {
 
   const claimHandler = async () => {
     if (wallet.accounts.length > 0) {
-      await dutchAuction.claim(bidAmount, wallet.accounts[0])
+      await dutchAuction.claim(wallet.accounts[0])
     }
   }
 
   const isOwner = wallet.accounts.length > 0 && wallet.accounts[0] == owner
+  const isClaimButtonDisabled = isClaimable && bidAmount != 0
 
   useEffect(() => {
-    dutchAuction.getOwner().then((res) => {
-      setOwner(res.toLowerCase())
-    }).catch((err) => {
-      console.log(err)
-    })
-    dutchAuction.getCurrentPrice().then((res) => {
-      setPrice(res)
-    }).catch((err) => {
-      console.log(err)
-    })
-    dutchAuction.getStage().then((res) => {
-      setStage(res)
-    }).catch((err) => {
-      console.log(err)
-    })
-    dutchAuction.getEndAt().then((res) => {
-      setEndAt(res)
-    }).catch((err) => {
-      console.log(err)
-    })
-    dutchAuction.getBids(wallet.accounts[0]).then((res) => {
-      setTotalBids(res)
-    }).catch((err) => {
-      // console.log(err)
-    })
-    dutchAuction.contract.on('BidSubmission', (sender, amount) => {
-      dutchAuction.getBids(wallet.accounts[0]).then((res) => setTotalBids(res))
-    })
-    dutchAuction.contract.on('TokenClaimed', (claimer, tokens) => {
-      dutchAuction.getBids(wallet.accounts[0]).then((res) => setTotalBids(res))
-    })
-
+    const getData = () => {
+      console.log('fetching data')
+      dutchAuction.getOwner().then((res) => {
+        setOwner(res.toLowerCase())
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getCurrentPrice().then((res) => {
+        setPrice(res)
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getStage().then((res) => {
+        setStage(res)
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getEndAt().then((res) => {
+        setEndAt(res)
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getTotalReceived().then((res) => {
+        setTotalReceived(res)
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getBids(wallet.accounts[0]).then((res) => {
+        setTotalBids(res)
+      }).catch((err) => {
+        // console.log(err)
+      })
+      dutchAuction.getFinalPrice().then((res) => {
+        setFinalPrice(res)
+      }).catch((err) => {
+        console.log(err)
+      })
+      dutchAuction.getTokenSupply().then((res) => {
+        setTokenSupply(res)
+      }).catch((err) => {
+        // console.log(err)
+      })
+      dutchAuction.getIsClaimable().then((res) => {
+        setIsClaimable(res)
+      }).catch((err) => {
+        // console.log(err)
+      })
+    }
+    getData()
+    const id = setInterval(getData, 3000);
+    return () => clearInterval(id);
   })
 
 
   return (
     <main className="flex min-h-screen flex-col items-center px-24 pt-12 bg-blue-100">
       <div className='flex justify-between w-full'>
-        {/* <button className='bg-red-200 rounded-lg px-3' onClick={test1Func}>
+        <button className='bg-red-200 rounded-lg px-3' onClick={test1Func}>
           TEST 1
         </button>
-        <button className='bg-red-200 rounded-lg px-3' onClick={test2Func}>
-          TEST 2
-        </button> */}
+
         {isOwner &&
-          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' disabled={stage == 'AuctionStarted'} onClick={ownerfunc}>
+          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' disabled={stage == 'AuctionStarted'} onClick={startAuction}>
             Start Auction
           </button>
-
+        }
+        {isOwner &&
+          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' onClick={finalizeAuction}>
+            Finalize Auction
+          </button>
         }
         <ConnectButton></ConnectButton>
       </div>
       {/* address and timer section */}
       <div className='flex w-full justify-around my-5 bg-white rounded-lg shadow-sm'>
-        <div className='p-5 w-1/2 text-center'>
-          Auction Address: {
-            formatAddress
-              (dutchAuction.address)}
-          <div>Auction Stage: {stage} </div>
+        <div className='w-1/2'>
+          <div className='p-5 text-center'>
+            Auction Address: {
+              formatAddress
+                (dutchAuction.address)}
+            <div className='pt-2'>Auction Stage: {stage} </div>
+          </div>
         </div>
         <div className='p-5 w-1/2 text-center'>
-          Ends at: {endAt}
+          <div>
+            {stage != 'AuctionDeployed' && <>Ends at: {endAt}</>}
+            {stage == 'AuctionDeployed' && <>Auction have not started</>}
+          </div>
+          <div className='pt-2'>
+            AToken Supply: {tokenSupply}
+          </div>
         </div>
       </div>
       {/* Current price and purchase history section */}
       <div className='flex w-full gap-1'>
         <div className='bg-white shadow-sm rounded-lg w-1/2 flex justify-around p-5'>
-          <div>Estimated Price:</div>
-          <div>{price.slice(0, 8)} Eth</div>
+          {stage != 'AuctionEnded' && <>
+            <div>Estimated Price:</div>
+            <div>{price} Eth</div>
+          </>}
+          {stage == 'AuctionEnded' && <>
+            <div>Confirmed Price:</div>
+            <div>{finalPrice} Eth / AToken</div>
+          </>}
         </div>
-        <div className='bg-white shadow-sm rounded-lg w-1/2 flex justify-around p-5'>
-          <div>Total Bids:</div>
-          <div>{totalBids} Eth</div>
+        <div className='bg-white shadow-sm rounded-lg w-1/2  p-5'>
+          <div className='flex justify-around'>
+            <div>Total bids:</div>
+            <div>{totalReceived} Eth</div>
+          </div>
+          <div className='flex justify-around'>
+            <div>Your Bids:</div>
+            <div>{totalBids} Eth</div>
+          </div>
         </div>
       </div>
       {/* Purchase button and input button */}
@@ -132,9 +175,9 @@ export default function Home() {
         </div>
       </div>
       {/* claim button */}
-      <div className='bg-blue-200 p-5 rounded-lg'>
+      <button className='bg-blue-200 px-5 py-2 rounded-lg' onClick={claimHandler}>
         claim button
-      </div>
+      </button>
     </main>
   )
 }
