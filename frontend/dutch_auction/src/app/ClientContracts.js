@@ -1,5 +1,5 @@
 'use client'
-import { ethers, BrowserProvider, parseUnits, Signature, parseEther, formatEther } from "ethers";
+import { ethers, BrowserProvider, parseUnits, Signature, parseEther, formatEther, formatUnits } from "ethers";
 import dutchAuctionArtifact from "@/../../artifacts/contracts/DutchAuction.sol/DutchAuction.json"
 class DutchAuction {
     constructor(address, abi) {
@@ -56,10 +56,7 @@ class DutchAuction {
         const result = await this.contract.totalReceived()
         return formatEther(result)
     }
-    async getIsClaimable() {
-        const result = await this.contract.isClaimable()
-        return Boolean(result)
-    }
+
 
     async bid(amount, address) {
         // amount is in float
@@ -97,9 +94,22 @@ class DutchAuction {
         const date = new Date(Number(result) * 1000)
         return date
     }
+    async getTokenAddress() {
+        return await this.contract.aToken()
+    }
+    async getClaimableTokenBalance(address) {
+        const result = await this.contract.getClaimableTokens(address)
+        if (Number(result) == 0) return "0.00"
+        return formatUnits(result, 2)
+    }
+    async getHasClaimed(address) {
+        const result = await this.contract.getHasClaimed(address)
+        return Boolean(result)
+
+    }
 }
 
-const AUCTION_ADDRESS = "0x4A679253410272dd5232B3Ff7cF5dbB88f295319";
+const AUCTION_ADDRESS = "0x720472c8ce72c2A2D711333e064ABD3E6BbEAdd3";
 
 
 export const dutchAuction = new DutchAuction(AUCTION_ADDRESS, dutchAuctionArtifact['abi'])

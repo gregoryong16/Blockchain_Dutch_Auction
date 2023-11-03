@@ -55,7 +55,7 @@ contract AToken is ERC20Interface, SafeMath {
     string public name;
     uint8 public decimals;
     uint public _totalSupply;
-    address public METAMASK_WALLET_ADDRESS = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    // address public METAMASK_WALLET_ADDRESS = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     mapping(address => uint) balances;
     mapping(address => mapping(address => uint)) allowed;
@@ -65,8 +65,9 @@ contract AToken is ERC20Interface, SafeMath {
         name = "ATeam Token";
         decimals = 2;
         _totalSupply = 100000;
-        balances[METAMASK_WALLET_ADDRESS] = _totalSupply;
-        emit Transfer(address(0), METAMASK_WALLET_ADDRESS, _totalSupply);
+        // balances[METAMASK_WALLET_ADDRESS] = _totalSupply;
+        balances[msg.sender] = _totalSupply;
+        // emit Transfer(address(0), METAMASK_WALLET_ADDRESS, _totalSupply);
     }
 
     function totalSupply() public view override returns (uint) {
@@ -114,5 +115,8 @@ contract AToken is ERC20Interface, SafeMath {
     }
     receive() external payable {
     // Handle incoming Ether here or leave it empty if no action is needed.
+    }
+    function getBalances(address userAddress) external view returns(uint) {
+        return balances[userAddress];
     }
 }

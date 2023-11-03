@@ -8,19 +8,21 @@ export default function Home() {
   const { wallet } = useMetaMask()
   // const [txs, setTxs] = useState([])
   const [owner, setOwner] = useState('')
+  const [claimableTokens, setClaimableTokens] = useState('')
   const [price, setPrice] = useState('')
   const [finalPrice, setFinalPrice] = useState('')
   const [tokenSupply, setTokenSupply] = useState(0)
+  const [tokenAddress, setTokenAddress] = useState(0)
   const [totalReceived, setTotalReceived] = useState('')
   const [stage, setStage] = useState('')
   const [endAt, setEndAt] = useState('')
   const [totalBids, setTotalBids] = useState('')
   const [bidAmount, setBidAmount] = useState(0)
-  const [isClaimable, setIsClaimable] = useState(false)
+  const [hasClaimed, setHasClaimed] = useState(false)
 
 
   const test1Func = async () => {
-    dutchAuction.getIsClaimable().then((res) => {
+    dutchAuction.getTime().then((res) => {
       console.log(res)
     })
   }
@@ -43,8 +45,14 @@ export default function Home() {
     }
   }
 
+  const getTokenAddressHandler = async () => {
+    const result = await dutchAuction.getTokenAddress()
+    console.log(result)
+  }
+
   const isOwner = wallet.accounts.length > 0 && wallet.accounts[0] == owner
-  const isClaimButtonDisabled = isClaimable && bidAmount != 0
+  // const isFinalizeAuctionState = stage == 'AuctionEnded'
+  const isStartAuction = stage == 'AuctionDeployed'
 
   useEffect(() => {
     const getData = () => {
@@ -89,15 +97,28 @@ export default function Home() {
       }).catch((err) => {
         // console.log(err)
       })
-      dutchAuction.getIsClaimable().then((res) => {
-        setIsClaimable(res)
+      dutchAuction.getClaimableTokenBalance(wallet.accounts[0]).then((res) => {
+        setClaimableTokens(res)
+      }).catch((err) => {
+        // console.log(err)
+      })
+      dutchAuction.getTokenAddress().then((res) => {
+        setTokenAddress(res)
+      }).catch((err) => {
+        // console.log(err)
+      })
+      dutchAuction.getHasClaimed(wallet.accounts[0]).then((res) => {
+        setHasClaimed(res)
       }).catch((err) => {
         // console.log(err)
       })
     }
     getData()
     const id = setInterval(getData, 3000);
-    return () => clearInterval(id);
+
+    return () =>
+      clearInterval(id);
+
   })
 
 
@@ -109,7 +130,7 @@ export default function Home() {
         </button>
 
         {isOwner &&
-          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' disabled={stage == 'AuctionStarted'} onClick={startAuction}>
+          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' disabled={!isStartAuction} onClick={startAuction}>
             Start Auction
           </button>
         }
@@ -165,7 +186,7 @@ export default function Home() {
       </div>
       {/* Purchase button and input button */}
       <div className='flex w-full justify-center my-5'>
-        <button className='bg-blue-200 p-2 rounded-lg mr-10' onClick={buyHandler}>
+        <button className='bg-blue-200 p-2 rounded-lg mr-10 disabled:bg-slate-300' onClick={buyHandler} disabled={stage != 'AuctionStarted'}>
           Buy Token
         </button>
         <div className='bg-white rounded-lg shadow-sm'>
@@ -174,10 +195,22 @@ export default function Home() {
 
         </div>
       </div>
+
+      <div>
+        Claimable Tokens: {claimableTokens}
+      </div>
       {/* claim button */}
-      <button className='bg-blue-200 px-5 py-2 rounded-lg' onClick={claimHandler}>
-        claim button
+      <button className='bg-blue-200 px-5 py-2 rounded-lg disabled:bg-gray-300' onClick={claimHandler} disabled={stage != 'AuctionEnded' || Number(claimableTokens) == 0}>
+        Claim
       </button>
+
+      {
+        hasClaimed && <div>
+          <div>Atoken Contract Address:  {tokenAddress}</div>
+          <div>Add the token to metamask!</div>
+        </div>
+      }
+
     </main>
   )
 }

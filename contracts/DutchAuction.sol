@@ -5,7 +5,7 @@ import "./AToken.sol";
 
 contract DutchAuction {
     // Constants
-    uint private constant DURATION =  2 minutes;
+    uint private constant DURATION =  1 minutes;
 
     // Events
     event BidSubmission(address indexed sender, uint256 amount);
@@ -28,10 +28,11 @@ contract DutchAuction {
     uint public endAt;
     uint public totalReceived;
     uint public finalPrice;
-    bool public isClaimable = false;
+    // bool public isClaimable = false;
     
     Stages private stage;
     mapping (address => uint) public bids;
+    mapping (address => bool) public hasClaimed;
     address public owner = msg.sender;
 
     // Modifiers
@@ -62,6 +63,8 @@ contract DutchAuction {
         decrementRate = _decrementRate;
         floorPrice = startingPrice - decrementRate*DURATION;
         require(floorPrice > 0, "Floorprice cannot be 0.");
+
+        aToken = new AToken();
         totalSupply = _totalSupply;
         stage = Stages.AuctionDeployed;
     }
@@ -129,12 +132,13 @@ contract DutchAuction {
         if (amount == maxAmountPurchasable) {
             stage = Stages.AuctionEnded;
             finalPrice = currentPrice;
+            finalizeAuction();
         }
 
         emit BidSubmission(_bidder, amount);
     }
 
-    function finalizeAuction() public onlyBy(owner) {
+    function finalizeAuction() public {
         require(stage == Stages.AuctionEnded || block.timestamp > endAt , " Unable to end auction");
 
         if (block.timestamp>endAt){
@@ -142,10 +146,10 @@ contract DutchAuction {
             stage = Stages.AuctionEnded;
         }
         uint unsoldTokens = totalSupply - totalReceived/finalPrice;
-        isClaimable = true;
+        totalSupply -= unsoldTokens;
 
         // Burn the rest of the tokens
-        // aToken.transfer(address(0), unsoldTokens);
+        aToken.transfer(address(0), unsoldTokens);
         }
     
 
@@ -161,7 +165,8 @@ contract DutchAuction {
 
         // Prevent against reentrancy
         bids[recipient] = 0;
-        // aToken.transfer(recipient, tokens);
+        aToken.transfer(recipient, tokens);
+        hasClaimed[_recipient] = true;
         
         //emit event for successful claim
         emit TokenClaimed(recipient, tokens);
@@ -169,4 +174,21 @@ contract DutchAuction {
     function getTime() external view returns(uint256){
         return block.timestamp;
     }
+    function getClaimableTokens(address userAddress) external view returns (uint){
+        if (stage != Stages.AuctionEnded){
+            return 0;
+        }
+        return bids[userAddress] / finalPrice;
+    }
+    function getHasClaimed(address userAddress) external view returns(bool){
+        return hasClaimed[userAddress];
+    }
+
+    fallback () external payable {
+        revert("Failed to find function");
+    }
+    receive() external payable {
+    // Handle incoming Ether here or leave it empty if no action is needed.
+    }
+    
 }
