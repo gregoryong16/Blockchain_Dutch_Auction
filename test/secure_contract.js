@@ -28,7 +28,6 @@ describe("DutchAuction", function () {
         expect(await dutchAuction.owner()).to.equal(owner.address);
         // Start the auction
         await dutchAuction.connect(owner).startAuction();
-        await contract.startAuction()
         console.log(await dutchAuction.getStage())
         // // Check if the stage changes to "AuctionStarted"
         // const startedStage = await dutchAuction.getStage();
