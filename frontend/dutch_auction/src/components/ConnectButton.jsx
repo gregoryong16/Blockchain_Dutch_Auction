@@ -1,7 +1,12 @@
 'use client';
 
+import NextLink from 'next/link'
 import { useMetaMask } from '@/hooks/useMetamask';
 import { formatAddress } from '@/utils';
+import { Button } from '@chakra-ui/react';
+import metamaskLogo from '../../public/MetaMask_Fox.png'
+import Image from 'next/image';
+import { BiWallet } from 'react-icons/bi'
 
 export default function ConnectButton() {
   const { wallet, hasProvider, isConnecting, connectMetaMask } = useMetaMask();
@@ -21,23 +26,36 @@ export default function ConnectButton() {
         </a>
       )}
       {wallet.accounts.length < 1 && (
-        <button
-          className={defaultClassName}
-          disabled={isConnecting}
+        <Button
+          isLoading={isConnecting}
           onClick={connectMetaMask}
+          size='lg'
+          height={20}
+          width="100%"
+          colorScheme='orange'
+          color="#202023"
         >
-          Connect MetaMask
-        </button>
+          <Image src={metamaskLogo} alt='MetaMask Logo'  
+          style={{
+          width: 'auto',
+          height: '80%',
+        }}/>
+          Connect with MetaMask
+        </Button>
       )}
       {hasProvider && wallet.accounts.length > 0 && (
-        <a
-          className={`text_link tooltip-bottom ${defaultClassName}`}
-          href={`https://etherscan.io/address/${wallet}`}
-          target="_blank"
-          data-tooltip="Open in Block Explorer"
-        >
-          {formatAddress(wallet.accounts[0])}
-        </a>
+        <NextLink href={`https://etherscan.io/address/${wallet.accounts[0]}`} passHref>
+          <Button
+            size="md"
+            leftIcon={<BiWallet />}
+            fontWeight="normal"
+            data-tooltip="Open in Block Explorer"
+            colorScheme='teal'
+            color="black"
+          >
+            {formatAddress(wallet.accounts[0])}
+          </Button>
+        </NextLink>
       )}
     </>
   );

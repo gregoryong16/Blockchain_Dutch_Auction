@@ -11,7 +11,7 @@ class DutchAuction {
     async getEndAt() {
         const result = await this.contract.endAt()
         const dt = new Date(Number(result) * 1000)
-        return dt.toLocaleString();
+        return dt;
     }
     async getStage() {
         const result = await this.contract.getStage()
@@ -109,7 +109,7 @@ class DutchAuction {
     }
 }
 
-const AUCTION_ADDRESS = "0x720472c8ce72c2A2D711333e064ABD3E6BbEAdd3";
+const AUCTION_ADDRESS = "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9";
 
 
 export const dutchAuction = new DutchAuction(AUCTION_ADDRESS, dutchAuctionArtifact['abi'])

@@ -3,7 +3,12 @@ import ConnectButton from '@/components/ConnectButton'
 import { useMetaMask } from '@/hooks/useMetamask'
 import { dutchAuction } from './ClientContracts'
 import { useEffect, useState } from 'react'
-import { formatAddress } from '@/utils'
+import ConnectToMetaMask from '@/components/ConnectToMetamask'
+import { Box, HStack, Heading, Spacer } from '@chakra-ui/react'
+import AdminPanel from '@/components/AdminPanel'
+import AuctionDetails from '@/components/AuctionDetails'
+import BiddingComponent from '@/components/BiddingComponent'
+
 export default function Home() {
   const { wallet } = useMetaMask()
   // const [txs, setTxs] = useState([])
@@ -17,8 +22,7 @@ export default function Home() {
   const [stage, setStage] = useState('')
   const [endAt, setEndAt] = useState('')
   const [totalBids, setTotalBids] = useState('')
-  const [bidAmount, setBidAmount] = useState(0)
-  const [hasClaimed, setHasClaimed] = useState(false)
+  const [startingPrice, setStartingPrice] = useState(0)
 
 
   const test1Func = async () => {
@@ -26,92 +30,40 @@ export default function Home() {
       console.log(res)
     })
   }
-  const startAuction = async () => {
-    await dutchAuction.startAuction()
-  }
-  const finalizeAuction = async () => {
-    await dutchAuction.finalizeAuction()
-  }
-
-  const buyHandler = async () => {
-    if (wallet.accounts.length > 0) {
-      await dutchAuction.bid(bidAmount, wallet.accounts[0])
-    }
-  }
-
-  const claimHandler = async () => {
-    if (wallet.accounts.length > 0) {
-      await dutchAuction.claim(wallet.accounts[0])
-    }
-  }
-
-  const getTokenAddressHandler = async () => {
-    const result = await dutchAuction.getTokenAddress()
-    console.log(result)
-  }
-
   const isOwner = wallet.accounts.length > 0 && wallet.accounts[0] == owner
-  // const isFinalizeAuctionState = stage == 'AuctionEnded'
-  const isStartAuction = stage == 'AuctionDeployed'
 
   useEffect(() => {
     const getData = () => {
       console.log('fetching data')
-      dutchAuction.getOwner().then((res) => {
-        setOwner(res.toLowerCase())
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getCurrentPrice().then((res) => {
-        setPrice(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getStage().then((res) => {
-        setStage(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getEndAt().then((res) => {
-        setEndAt(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getTotalReceived().then((res) => {
-        setTotalReceived(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getBids(wallet.accounts[0]).then((res) => {
-        setTotalBids(res)
-      }).catch((err) => {
-        // console.log(err)
-      })
-      dutchAuction.getFinalPrice().then((res) => {
-        setFinalPrice(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-      dutchAuction.getTokenSupply().then((res) => {
-        setTokenSupply(res)
-      }).catch((err) => {
-        // console.log(err)
-      })
-      dutchAuction.getClaimableTokenBalance(wallet.accounts[0]).then((res) => {
-        setClaimableTokens(res)
-      }).catch((err) => {
-        // console.log(err)
-      })
-      dutchAuction.getTokenAddress().then((res) => {
-        setTokenAddress(res)
-      }).catch((err) => {
-        // console.log(err)
-      })
-      dutchAuction.getHasClaimed(wallet.accounts[0]).then((res) => {
-        setHasClaimed(res)
-      }).catch((err) => {
-        // console.log(err)
-      })
+      
+      Promise.all([
+          dutchAuction.getOwner(), 
+          dutchAuction.getCurrentPrice(), 
+          dutchAuction.getStage(), 
+          dutchAuction.getEndAt(),
+          dutchAuction.getTotalReceived(),
+          dutchAuction.getBids(wallet.accounts[0]),
+          dutchAuction.getFinalPrice(),
+          dutchAuction.getTokenSupply(),
+          dutchAuction.getClaimableTokenBalance(wallet.accounts[0]),
+          dutchAuction.getTokenAddress(),
+          dutchAuction.getStartingPrice()
+        ]).then(([owner, currentPrice, currentStage, endAt, totalReceived, bids, finalPrice, tokenSupply, claimableTokenBalance, tokenAddress, startingPrice]) => {
+          setOwner(owner.toLowerCase())
+          setPrice(currentPrice)
+          setStage(currentStage)
+          setEndAt(endAt)
+          setTotalReceived(totalReceived)
+          setTotalBids(bids)
+          setFinalPrice(finalPrice)
+          setTokenSupply(tokenSupply)
+          setClaimableTokens(claimableTokenBalance)
+          setTokenAddress(tokenAddress)
+          setStartingPrice(startingPrice)
+        },
+        (error) => {
+          console.log(error)
+        })
     }
     getData()
     const id = setInterval(getData, 3000);
@@ -121,96 +73,46 @@ export default function Home() {
 
   })
 
-
   return (
-    <main className="flex min-h-screen flex-col items-center px-24 pt-12 bg-blue-100">
-      <div className='flex justify-between w-full'>
-        <button className='bg-red-200 rounded-lg px-3' onClick={test1Func}>
-          TEST 1
-        </button>
-
-        {isOwner &&
-          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' disabled={!isStartAuction} onClick={startAuction}>
-            Start Auction
-          </button>
-        }
-        {isOwner &&
-          <button className='bg-red-200 rounded-lg px-3 disabled:bg-slate-500' onClick={finalizeAuction}>
-            Finalize Auction
-          </button>
-        }
-        <ConnectButton></ConnectButton>
-      </div>
-      {/* address and timer section */}
-      <div className='flex w-full justify-around my-5 bg-white rounded-lg shadow-sm'>
-        <div className='w-1/2'>
-          <div className='p-5 text-center'>
-            Auction Address: {
-              formatAddress
-                (dutchAuction.address)}
-            <div className='pt-2'>Auction Stage: {stage} </div>
-          </div>
-        </div>
-        <div className='p-5 w-1/2 text-center'>
-          <div>
-            {stage != 'AuctionDeployed' && <>Ends at: {endAt}</>}
-            {stage == 'AuctionDeployed' && <>Auction have not started</>}
-          </div>
-          <div className='pt-2'>
-            AToken Supply: {tokenSupply}
-          </div>
-        </div>
-      </div>
-      {/* Current price and purchase history section */}
-      <div className='flex w-full gap-1'>
-        <div className='bg-white shadow-sm rounded-lg w-1/2 flex justify-around p-5'>
-          {stage != 'AuctionEnded' && <>
-            <div>Estimated Price:</div>
-            <div>{price} Eth</div>
-          </>}
-          {stage == 'AuctionEnded' && <>
-            <div>Confirmed Price:</div>
-            <div>{finalPrice} Eth / AToken</div>
-          </>}
-        </div>
-        <div className='bg-white shadow-sm rounded-lg w-1/2  p-5'>
-          <div className='flex justify-around'>
-            <div>Total bids:</div>
-            <div>{totalReceived} Eth</div>
-          </div>
-          <div className='flex justify-around'>
-            <div>Your Bids:</div>
-            <div>{totalBids} Eth</div>
-          </div>
-        </div>
-      </div>
-      {/* Purchase button and input button */}
-      <div className='flex w-full justify-center my-5'>
-        <button className='bg-blue-200 p-2 rounded-lg mr-10 disabled:bg-slate-300' onClick={buyHandler} disabled={stage != 'AuctionStarted'}>
-          Buy Token
-        </button>
-        <div className='bg-white rounded-lg shadow-sm'>
-          <input className=' rounded-l-lg h-full pl-2' type="number" onChange={(e) => setBidAmount(e.target.value)}></input>
-          <span className='rounded-r-lg bg-white h-full pr-2'>Eth</span>
-
-        </div>
-      </div>
-
-      <div>
-        Claimable Tokens: {claimableTokens}
-      </div>
-      {/* claim button */}
-      <button className='bg-blue-200 px-5 py-2 rounded-lg disabled:bg-gray-300' onClick={claimHandler} disabled={stage != 'AuctionEnded' || Number(claimableTokens) == 0}>
-        Claim
-      </button>
-
+    <Box style={{
+      textAlign: "center",
+      backgroundColor: "#202023",
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      flexDirection: "column",
+      padding: "10px"
+    }}>
       {
-        hasClaimed && <div>
-          <div>Atoken Contract Address:  {tokenAddress}</div>
-          <div>Add the token to metamask!</div>
-        </div>
-      }
-
-    </main>
+      wallet.accounts.length <= 0 ? 
+      <ConnectToMetaMask /> : (
+        <>
+        <HStack width="90%" mb={5} mt={3}>
+          <Heading size="xl" color="#EEEEEE">AToken Dutch Auction</Heading>
+          <Spacer />
+          <ConnectButton />
+        </HStack>
+        <AuctionDetails 
+          endAt={endAt}
+          auctionStage={stage}
+          tokenSupply={tokenSupply}
+          startingPrice={startingPrice}
+          auctionAddress={dutchAuction.address}
+        />
+        <BiddingComponent 
+          estimatedPrice={price} 
+          totalBids={totalReceived} 
+          finalPrice={finalPrice} 
+          bids={totalBids}
+          stage={stage}
+          claimableTokens={claimableTokens}
+          wallet={wallet}
+          tokenAddress={tokenAddress}
+        />
+    {isOwner && <AdminPanel />}
+    </>
+    )
+  }
+    </Box>
   )
 }

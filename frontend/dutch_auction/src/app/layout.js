@@ -2,6 +2,8 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { MetaMaskContextProvider } from '@/hooks/useMetamask'
+import { ChakraProvider, Box, ColorModeScript } from '@chakra-ui/react'
+import theme from '@/utils/theme'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,13 +13,15 @@ const inter = Inter({ subsets: ['latin'] })
 // }
 
 export default function RootLayout({ children }) {
-  { }
   return (
     <html lang="en">
       <body className={inter.className}>
-        <MetaMaskContextProvider>
-          {children}
-        </MetaMaskContextProvider>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        <ChakraProvider>
+          <MetaMaskContextProvider>
+              {children}
+          </MetaMaskContextProvider>
+        </ChakraProvider>
       </body>
     </html>
   )
