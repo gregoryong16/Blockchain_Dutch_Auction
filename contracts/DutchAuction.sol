@@ -5,7 +5,7 @@ import "./AToken.sol";
 
 contract DutchAuction {
     // Constants
-    uint private constant DURATION =  1 minutes;
+    uint private constant DURATION =  20 minutes;
 
     // Events
     event BidSubmission(address indexed sender, uint256 amount);
