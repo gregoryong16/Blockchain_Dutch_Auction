@@ -1,30 +1,57 @@
 # Blockchain_Dutch_Auction
 
-**1. Ethereum Smart Contracts:**
+Implemented smart contracts on Ethereum with a front end webapp(developed using NextJS and styled using ChakraUI) for a new token launch (**AToken**) whose tokens are bid with Ether and distributed via a Dutch Auction over 20 minutes time.
 
-**Solidity:** A widely-used programming language for Ethereum smart contracts.
+## Technology Stack & Dependencies
 
-**Hardhat:** A development framework for Ethereum that simplifies contract development, testing, and deployment.
+- Solidity (Writing Smart Contract)
+- [NextJS](https://nextjs.org/) and [ChakraUI](https://chakra-ui.com/) (Frontend Webapp)
+- [Hardhat](https://hardhat.org/) (for compiling and deploying Smart Contract on local Ethereum Testnet, also used for conducting tests-reentry attack)
 
-**2. Ethereum Development Environment:**
+### 1. Clone/Download the Repository
 
-**Node.js and npm:** Essential for running development tools and scripts.
+### 2. Install Dependencies:
 
-**3. Front-End Web Application:**
+```
+$ npm install
+```
 
-**HTML/CSS:** For structuring and minimal styling of your web app. Using Tailwind CSS.
+### 3. Compile Smart Contracts
 
-**JavaScript:** For adding interactivity to your web app. Using NextJS.
+```
+$ npx hardhat compile
+```
 
-**Ethers.js:** A JavaScript library for interacting with Ethereum from the front end. It simplifies Ethereum integration in your web app.
+### 4. Start local Ethereum development node
 
-**4. MetaMask:**
-A browser extension wallet that enables users to interact with Ethereum-based applications. Users can use MetaMask to participate in your token auction.
+```
+$ npx hardhat node
+```
 
-**5. Ethereum Testnet:**
+### 5. Run Deployment Scripts
 
-**Rinkeby:** A popular Ethereum testnet that allows you to test your smart contracts and the interaction between your web app and the Ethereum network without using real Ether.
+```
+$ npx hardhat run --network localhost scripts/deploy.js
+```
 
-**6. Hosting:**
+Ensure the output after deploying smart contracts gives the correct address that matches the dutch auction contract address at in the file [ClientContract.js](./frontend/dutch_auction/src/app/ClientContracts.js?plain=124) line 124 const AUCTION_ADDRESS = [Deployed auction address based on output]
 
-**Vercel:** A hosting platform that allows you to deploy and host your front-end web application. It's known for its ease of use and support for static websites.
+### 6. Launch Frontend WebApp (by changing directory to ./frontend/dutch_auction)
+
+```
+$ cd frontend/dutch_auction
+$ npm run dev
+```
+
+### 7. Head to [webpage](http://localhost:3000) at local host port 3000.
+
+### 8. Connect to MetaMask with wallet of choice.
+
+If you connect to the account who is the owner of the address, you will have elevated permissions such as being able to start/end the auction. <br>
+Else, you will be directed to the normal user landing page where you will be able to bid for the tokens when the auction has started.
+
+
+### At the end of the auction, after clicking on the **Claim Tokens button**, you can check your claimed tokens in your metamask wallet by following these steps: 
+1. Go to the Tokens tab in the metmask wallet
+2. Click on **Import Tokens** 
+3. Input the AToken Contract Address into Metamask. 
