@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import "./AToken.sol";
 
-contract DutchAuction {
+contract DutchAuction{
     // Constants
     uint private constant DURATION =  20 minutes;
 
@@ -29,7 +29,8 @@ contract DutchAuction {
     uint public totalReceived;
     uint public finalPrice;
     // bool public isClaimable = false;
-    
+    bool internal locked;
+
     Stages private stage;
     mapping (address => uint) public bids;
     mapping (address => bool) public hasClaimed;
@@ -46,6 +47,13 @@ contract DutchAuction {
         require(stage == _expectedStage);
         _;
     }
+
+    modifier noReentrant() {
+    require(!locked, "cannot reenter");
+    locked = true;
+    _;
+    locked = false;
+}
 
     // modifier timedTransition() {
     //     if ((stage == Stages.AuctionStarted && calculateCurrentPrice() < floorPrice) || (stage == Stages.AuctionStarted && block.timestamp > endAt)){
@@ -153,7 +161,7 @@ contract DutchAuction {
         }
     
 
-    function claimTokens(address _recipient) external stageAt(Stages.AuctionEnded) {
+    function claimTokens(address _recipient) external noReentrant stageAt(Stages.AuctionEnded) {
         require(stage == Stages.AuctionEnded, "Auction have not ended");
         address payable recipient;
         if (_recipient == address(0)) {

