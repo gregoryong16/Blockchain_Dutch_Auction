@@ -98,6 +98,7 @@ export default function Home() {
           tokenSupply={tokenSupply}
           startingPrice={startingPrice}
           auctionAddress={dutchAuction.address}
+          isOwner={isOwner}
         />
         <BiddingComponent 
           estimatedPrice={price} 

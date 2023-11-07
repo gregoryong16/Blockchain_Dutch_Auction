@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, HStack, Heading, Spacer } from "@chakra-ui/react";
+import { Button, Card, CardBody, CardHeader, Center, Heading } from "@chakra-ui/react";
 import { dutchAuction } from "@/app/ClientContracts";
 import { useState } from "react";
 
@@ -36,7 +36,7 @@ const AdminPanel = (props) => {
                 <Heading color="#EEEEEE">Admin Panel</Heading>
             </CardHeader>
             <CardBody>
-                <HStack>
+                <Center>
                     <Button 
                         width="40%" 
                         isLoading={auctionStartLoading}
@@ -44,17 +44,7 @@ const AdminPanel = (props) => {
                         colorScheme="green">
                         Start Auction
                     </Button>
-                    <Spacer />
-                    <Button 
-                        width="40%" 
-                        isLoading={auctionEndLoading}
-                        onClick={finalizeAuction}
-                        colorScheme="red"
-                        >
-                        End Auction
-                    </Button>
-                </HStack>
-                
+                </Center>
             </CardBody>
         </Card>
     )

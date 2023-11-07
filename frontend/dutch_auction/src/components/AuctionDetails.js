@@ -1,5 +1,6 @@
 import { Badge, Card, CardBody, CardHeader, Center, Divider, HStack, Heading, Stack, Text } from "@chakra-ui/react";
 import { CountdownCircleTimer } from "react-countdown-circle-timer";
+import { dutchAuction } from "@/app/ClientContracts";
 
 const AuctionDetails = (props) => {
     const hourSeconds = 3600;
@@ -59,6 +60,15 @@ const AuctionDetails = (props) => {
                         colors="#319795"
                         duration={duration}
                         initialRemainingTime={(endTime - startTime) % hourSeconds}
+                        onComplete={ async () => {
+                            if (props.auctionStage === "AuctionStarted" && props.isOwner) {
+                                try {
+                                    await dutchAuction.finalizeAuction()
+                                } catch (e) {
+                                    console.log(e)
+                                }
+                            }
+                        }}
                     >
                         {({ elapsedTime, color }) => (
                             <span style={{ color }}>
