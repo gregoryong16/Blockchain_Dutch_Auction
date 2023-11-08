@@ -121,7 +121,7 @@ class DutchAuction {
   }
 }
 
-const AUCTION_ADDRESS = "0x95401dc811bb5740090279Ba06cfA8fcF6113778";
+const AUCTION_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 export const dutchAuction = new DutchAuction(
   AUCTION_ADDRESS,

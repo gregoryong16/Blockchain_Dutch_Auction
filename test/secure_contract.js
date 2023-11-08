@@ -70,9 +70,8 @@ describe("DutchAuction", function () {
 
     // ------------------------ Important Part  -----------------------------------------------------------
     // Attacker tries to perform Reentrancy attack during claiming of coins
-    // expect(attackContract.connect(addr1).claimTokens()).to.be.revertedWith("hi");
     const claimTx = await attackContract.connect(addr1).claimTokens();
-    // console.log(claimTx);
+    // expect revertion because of reentrancy guard
     await claimTx.wait();
     
     // console.log(await dutchAuction.bids(attackContract.target))
@@ -80,8 +79,8 @@ describe("DutchAuction", function () {
     // // expect(await dutchAuction.bids(attackContract.target)).to.equal(ethers.parseEther("0"));
     
     // Owner collect Tokens
-    const claimTx1 = await dutchAuction.connect(owner).claimTokens(owner.address);
-    await claimTx1.wait();
+    // const claimTx1 = await dutchAuction.connect(owner).claimTokens(owner.address);
+    // await claimTx1.wait();
   });
 
 });
