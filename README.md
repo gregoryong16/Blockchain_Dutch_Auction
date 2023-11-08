@@ -40,7 +40,7 @@ Ensure the output after deploying smart contracts gives the correct address that
 
 ```
 $ cd frontend/dutch_auction
-$ cd npm i // install dependencies
+$ npm i
 $ npm run dev
 ```
 
