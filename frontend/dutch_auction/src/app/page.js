@@ -61,7 +61,7 @@ export default function Home() {
           setTokenAddress(tokenAddress)
           setStartingPrice(startingPrice)
 
-          if ( Number(totalReceived) / Number(currentPrice) >= Number(tokenSupply) ) {
+          if ( (Number(totalReceived) / Number(currentPrice) >= Number(tokenSupply)) && isOwner ) {
             dutchAuction.finalizeAuction().then(() => {
               console.log("Auction is ending")
             })
