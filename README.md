@@ -47,10 +47,9 @@ $ npm run dev
 ### 7. Head to [webpage](http://localhost:3000) at local host port 3000.
 
 ### 8. Connect to MetaMask with wallet of choice.
-
-If you connect to the account who is the owner of the address, you will have elevated permissions such as being able to start/end the auction. <br>
-Else, you will be directed to the normal user landing page where you will be able to bid for the tokens when the auction has started.
-
+- Add the Hardhat network to MetaMask
+- To use the app as the owner of the dutch auction contract, use the first address given after starting the HardHat network. This will give you elevated permissions such as being able to start/end the auction. You may need to import this address on MetaMask.
+- To use the app as a normal user without owner privileges, you may use any address.
 
 ### At the end of the auction, after clicking on the **Claim Tokens button**, you can check your claimed tokens in your metamask wallet by following these steps: 
 1. Go to the Tokens tab in the metmask wallet
