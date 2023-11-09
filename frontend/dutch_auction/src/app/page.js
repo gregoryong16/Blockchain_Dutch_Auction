@@ -60,6 +60,12 @@ export default function Home() {
           setClaimableTokens(claimableTokenBalance)
           setTokenAddress(tokenAddress)
           setStartingPrice(startingPrice)
+
+          if ( Number(totalReceived) / Number(currentPrice) >= Number(tokenSupply) ) {
+            dutchAuction.finalizeAuction().then(() => {
+              console.log("Auction is ending")
+            })
+          }
         },
         (error) => {
           console.log(error)
